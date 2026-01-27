@@ -48,16 +48,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Residence $residence = null;
 
+    /**
+    * @var Collection<int, Residence>
+    */
+    #[ORM\OneToMany(mappedBy: 'syndic', targetEntity: Residence::class)]
+    private Collection $managedResidences;
+
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Building $building = null;
-
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
-    private ?Apartment $apartment = null;
 
     public function __construct()
     {
         $this->payments = new ArrayCollection();
         $this->complaints = new ArrayCollection();
+        $this->managedResidences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -214,15 +218,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getApartment(): ?Apartment
+    /**
+    * @return Collection<int, Residence>
+    */
+    public function getManagedResidences(): Collection
     {
-        return $this->apartment;
+        return $this->managedResidences;
     }
 
-    public function setApartment(?Apartment $apartment): static
-    {
-        $this->apartment = $apartment;
-
-        return $this;
-    }
 }

@@ -21,7 +21,8 @@ class Residence
     #[ORM\Column(length: 255)]
     private ?string $subdomain = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $syndic = null;
 
     /**
