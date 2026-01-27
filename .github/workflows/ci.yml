@@ -21,7 +21,7 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install --no-interaction -- prefer-dist
+        run: composer install --no-interaction --prefer-dist
 
       - name: Run PHPUnit
         run: php bin/phpunit
