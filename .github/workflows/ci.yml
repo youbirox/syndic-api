@@ -1,0 +1,27 @@
+name: Symfiny CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+
+jobs:
+  symfony-testes:
+    runs-on: ubuntu-lastest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mbstring, intl, pdo_pysql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction -- prefer-dist
+
+      - name: Run PHPUnit
+        run: php bin/phpunit
