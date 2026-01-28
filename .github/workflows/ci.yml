@@ -6,8 +6,22 @@ on:
   pull_request:
 
 jobs:
-  symfony-testes:
+  symfony-tests:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: syndic_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -23,9 +37,15 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Prepare test database
+      - name: Wait for MySQL
         run: |
-          php bin/console doctrine:database:create --env=test
+          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
+            sleep 1
+          done
+
+      - name: Prepare database
+        run: |
+          php bin/console doctrine:database:create --env=test --if-not-exists
           php bin/console doctrine:schema:create --env=test
 
       - name: Run PHPUnit
