@@ -17,11 +17,16 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.1"
-          extensions: mbstring, intl, pdo_pysql
+          extensions: mbstring, intl, pdo_mysql
           coverage: none
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare test database
+        run: |
+          php bin/console doctrine:database:create --env=test
+          php bin/console doctrine:schema:create --env=test
 
       - name: Run PHPUnit
         run: php bin/phpunit
