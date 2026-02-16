@@ -14,32 +14,39 @@ class TenantListener
         private TenantContext $tenantContext
     ) {}
 
-    public function onKernelRequest(RequestEvent $event): void
-    {
-        // uniquement la requête principale
+    public function onKernelRequest(RequestEvent $event)
+{
+
+    // uniquement la requête principale
         if (!$event->isMainRequest()) {
             return;
         }
+    $request = $event->getRequest();
+    $host = $request->getHost(); // ex: orchidee.localhost
 
-        $request = $event->getRequest();
-        $host = $request->getHost(); // ex: orchidee.syndic.ma
+    $parts = explode('.', $host);
 
-        $subdomain = explode('.', $host)[0];
-
-        // sous-domaines à ignorer
-        $skip = ['www', 'api', 'admin', 'localhost', '127'];
-
-        if (in_array($subdomain, $skip, true)) {
-            return;
-        }
-
-        $residence = $this->em->getRepository(Residence::class)
-            ->findOneBy(['subdomain' => $subdomain]);
-
-        if (!$residence) {
-            throw new NotFoundHttpException("Résidence introuvable pour: $subdomain");
-        }
-
-        $this->tenantContext->setResidence($residence);
+    // Pas de sous-domaine → interdit
+    if (count($parts) < 2) {
+        throw new NotFoundHttpException('Sous-domaine requis');
     }
+
+    $subdomain = $parts[0];
+
+    // Autoriser admin si tu veux
+    if ($subdomain === 'admin') {
+        return;
+    }
+
+
+
+    $residence = $this->em->getRepository(Residence::class)
+        ->findOneBy(['subdomain' => $subdomain]);
+
+    if (!$residence) {
+        throw new NotFoundHttpException('Résidence introuvable');
+    }
+
+    $this->tenantContext->setResidence($residence);
+}
 }
