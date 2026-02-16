@@ -23,6 +23,7 @@ final class UserControllerTest extends WebTestCase
         $user = new User();
         $user->setEmail('test@test.com');
         $user->setRoles(['ROLE_USER']);
+        $user->setActif(0);
         $user->setPassword(
             $container->get(UserPasswordHasherInterface::class)
                 ->hashPassword($user, 'password')
