@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Apartment;
+use App\Entity\Residence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,4 +41,25 @@ class ApartmentRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    public function findByResidence(Residence $residence): array
+    {
+        return $this->createQueryBuilder('a')
+            ->join('a.building', 'b')
+            ->andWhere('b.residence = :residence')
+            ->setParameter('residence', $residence)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findAvailableByResidence(Residence $residence): array
+    {
+        return $this->createQueryBuilder('a')
+            ->join('a.building', 'b')
+            ->where('b.residence = :residence')
+            ->andWhere('a.resident IS NULL')
+            ->setParameter('residence', $residence)
+            ->getQuery()
+            ->getResult();
+    }
 }

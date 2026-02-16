@@ -57,4 +57,64 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 //            ->getOneOrNullResult()
 //        ;
 //    }
+
+    /**
+    * Retourne tous les utilisateurs avec le rôle ROLE_RESIDENT
+    * pour une résidence spécifique
+    *
+    * @param int|object $residence La résidence ou son id
+    * @return User[]
+    */
+    public function findResidentsByResidence($residence)
+    {
+        $qb = $this->createQueryBuilder('u')
+            ->leftJoin('u.apartment', 'a')      
+            ->addSelect('a')                    
+            ->where('u.residence = :residence')
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('residence', $residence)
+            ->setParameter('role', '%ROLE_RESIDENT%');
+
+    return $qb->getQuery()->getResult();
+    }
+
+    public function countResidentsByResidence($residence): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.residence = :residence')
+            ->andWhere('u.roles LIKE :role')
+            ->setParameter('residence', $residence)
+            ->setParameter('role', '%ROLE_RESIDENT%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countResidentsInactif($residence): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.residence = :residence')
+            ->andWhere('u.roles LIKE :role')
+            ->andWhere('u.actif LIKE :actif')
+            ->setParameter('residence', $residence)
+            ->setParameter('role', '%ROLE_RESIDENT%')
+            ->setParameter('actif', '%0%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countResidentsActif($residence): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.residence = :residence')
+            ->andWhere('u.roles LIKE :role')
+            ->andWhere('u.actif LIKE :actif')
+            ->setParameter('residence', $residence)
+            ->setParameter('role', '%ROLE_RESIDENT%')
+            ->setParameter('actif', '%1%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
