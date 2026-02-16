@@ -11,13 +11,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_ADMIN')]
 #[Route('/api/users')]
 final class UserController extends AbstractController
 {
     #[Route('',methods: ['GET'])]
     public function list(EntityManagerInterface $em):JsonResponse
     {
+        //$this->denyAccessUnlessGranted('ROLE_ADMIN');
+
         $users = $em->getRepository(User::class)->findAll();
 
         $data = [];
