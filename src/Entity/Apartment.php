@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ApartmentRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ApartmentRepository::class)]
@@ -19,8 +21,24 @@ class Apartment
     #[ORM\ManyToOne(inversedBy: 'apartments')]
     private ?Building $building = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'apartments')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $createdBy = null;
+
+    #[ORM\OneToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, unique: true)]
     private ?User $resident = null;
+
+    /**
+     * @var Collection<int, Subscription>
+     */
+    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'apartment')]
+    private Collection $subscriptions;
+
+    public function __construct()
+    {
+        $this->subscriptions = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -51,14 +69,55 @@ class Apartment
         return $this;
     }
 
-    public function getResident(): ?User
+
+    public function getCreatedBy(): ?User
     {
-        return $this->resident;
+        return $this->createdBy;
     }
 
-    public function setResident(?User $resident): static
+    public function setCreatedBy(?User $user): self
+    {
+        $this->createdBy = $user;
+        return $this;
+    }
+
+    public function getResident(): ?User
+{
+    return $this->resident;
+}
+
+    public function setResident(?User $resident): self
     {
         $this->resident = $resident;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Subscription>
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    public function addSubscription(Subscription $subscription): static
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions->add($subscription);
+            $subscription->setApartment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(Subscription $subscription): static
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getApartment() === $this) {
+                $subscription->setApartment(null);
+            }
+        }
 
         return $this;
     }

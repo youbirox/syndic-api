@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -22,7 +23,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string')]
     #[Assert\NotBlank(message: "L'email est obligatoire.")]
     #[Assert\Email(message: "L'email '{{ value }}' n'est pas valide.")]
+    #[Groups(['complaint:list'])]
     private ?string $email;
+    
 
     /**
      * @var list<string> The user roles
@@ -60,11 +63,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne(inversedBy: 'users')]
     private ?Building $building = null;
 
+    /**
+    * @var Collection<int, Apartment>
+    */
+    #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Apartment::class)]
+    private Collection $apartments;
+
+    #[ORM\OneToOne(mappedBy: 'resident', targetEntity: Apartment::class)]
+    private ?Apartment $apartment = null;
+
+    /**
+     * @var Collection<int, Subscription>
+     */
+    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'resident')]
+    private Collection $subscriptions;
+
+    #[ORM\Column]
+    private ?bool $actif = null;
+
     public function __construct()
     {
         $this->payments = new ArrayCollection();
         $this->complaints = new ArrayCollection();
         $this->managedResidences = new ArrayCollection();
+        $this->apartments = new ArrayCollection();
+        $this->subscriptions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -227,6 +250,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getManagedResidences(): Collection
     {
         return $this->managedResidences;
+    }
+
+    /**
+    * @return Collection<int, Apartment>
+    */
+    public function getApartments(): Collection
+    {
+        return $this->apartments;
+    }
+
+    public function getApartment(): ?Apartment
+    {
+        return $this->apartment;
+    }
+
+    /**
+     * @return Collection<int, Subscription>
+     */
+    public function getSubscriptions(): Collection
+    {
+        return $this->subscriptions;
+    }
+
+    public function addSubscription(Subscription $subscription): static
+    {
+        if (!$this->subscriptions->contains($subscription)) {
+            $this->subscriptions->add($subscription);
+            $subscription->setResident($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(Subscription $subscription): static
+    {
+        if ($this->subscriptions->removeElement($subscription)) {
+            // set the owning side to null (unless already changed)
+            if ($subscription->getResident() === $this) {
+                $subscription->setResident(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function isActif(): ?bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): static
+    {
+        $this->actif = $actif;
+
+        return $this;
+    }
+
+    public function isEnabled(): bool
+    {
+        return $this->actif;
     }
 
 }

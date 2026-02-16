@@ -13,9 +13,11 @@ class Residence
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['complaint:list'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['complaint:list'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
@@ -55,6 +57,12 @@ class Residence
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'residence')]
     private Collection $users;
 
+    /**
+     * @var Collection<int, Subscription>
+     */
+    #[ORM\OneToMany(targetEntity: Subscription::class, mappedBy: 'residence')]
+    private Collection $apartment;
+
     public function __construct()
     {
         $this->buildings = new ArrayCollection();
@@ -62,6 +70,7 @@ class Residence
         $this->news = new ArrayCollection();
         $this->complaints = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->apartment = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -249,6 +258,36 @@ class Residence
             // set the owning side to null (unless already changed)
             if ($user->getResidence() === $this) {
                 $user->setResidence(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Subscription>
+     */
+    public function getApartment(): Collection
+    {
+        return $this->apartment;
+    }
+
+    public function addApartment(Subscription $apartment): static
+    {
+        if (!$this->apartment->contains($apartment)) {
+            $this->apartment->add($apartment);
+            $apartment->setResidence($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApartment(Subscription $apartment): static
+    {
+        if ($this->apartment->removeElement($apartment)) {
+            // set the owning side to null (unless already changed)
+            if ($apartment->getResidence() === $this) {
+                $apartment->setResidence(null);
             }
         }
 

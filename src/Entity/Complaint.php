@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ComplaintRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -12,21 +13,27 @@ class Complaint
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['complaint:list'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['complaint:list'])]
     private ?string $message = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['complaint:list'])]
     private ?string $status = null;
 
     #[ORM\Column]
+    #[Groups(['complaint:list'])]
     private ?\DateTime $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'complaints')]
+    #[Groups(['complaint:list'])]
     private ?User $user = null;
 
     #[ORM\ManyToOne(inversedBy: 'complaints')]
+    #[Groups(['complaint:list'])]
     private ?Residence $residence = null;
 
     public function getId(): ?int
